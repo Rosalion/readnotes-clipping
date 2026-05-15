@@ -172,8 +172,51 @@ function paragraph(rt) {
   return { object: "block", type: "paragraph", paragraph: { rich_text: rt } };
 }
 
-const SPECIAL_LINE = /^(#{1,3}\s|>\s?|```|\s*[-*+]\s|\s*\d+\.\s|!\[)/;
+const SPECIAL_LINE = /^(#{1,3}\s|>\s?|```|\s*[-*+]\s|\s*\d+\.\s|!\[|\[!\[|\[\s*\]\()/;
 const HR_LINE = /^(-{3,}|\*{3,}|_{3,})\s*$/;
+
+// 兜底反包装：即使 content.js 漏了，也在这里把 Substack 的代理 URL 解出来
+function unwrapForNotion(url) {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (
+      (host === "substackcdn.com" || host.endsWith(".substackcdn.com")) &&
+      u.pathname.startsWith("/image/fetch/")
+    ) {
+      const m = u.pathname.match(/^\/image\/fetch\/[^/]+\/(.+)$/);
+      if (m) {
+        let inner = m[1];
+        for (let i = 0; i < 3 && /%[0-9a-fA-F]{2}/.test(inner); i++) {
+          inner = decodeURIComponent(inner);
+          if (/^https?:\/\//i.test(inner)) break;
+        }
+        if (/^https?:\/\//i.test(inner)) return inner;
+      }
+    }
+    if (host === "images.weserv.nl" || host === "wsrv.nl") {
+      const pass = u.searchParams.get("url") || u.searchParams.get("src");
+      if (pass) return /^https?:\/\//i.test(pass) ? pass : "https://" + pass;
+    }
+  } catch (e) {}
+  return url;
+}
+
+function isUsableImageUrl(url) {
+  return !!(url && /^https?:\/\//i.test(url) && url.length <= 2000 && !/\s/.test(url));
+}
+
+function pushImageBlock(blocks, url) {
+  const cleaned = unwrapForNotion((url || "").trim());
+  if (isUsableImageUrl(cleaned)) {
+    blocks.push({
+      object: "block",
+      type: "image",
+      image: { type: "external", external: { url: cleaned } },
+    });
+  }
+}
 
 export function markdownToBlocks(md) {
   const lines = String(md || "").replace(/\r\n/g, "\n").split("\n");
@@ -287,23 +330,33 @@ export function markdownToBlocks(md) {
       continue;
     }
 
+    // 独占一行的链接包图片 [![alt](src)](href) —— Substack / 公众号 常见
+    // 取内层 src 当图片（href 通常是同一张图的 fetch 包装链，不必双写）
+    const linkedImg = line.match(/^\[!\[[^\]]*\]\(([^)]+)\)\]\(([^)]+)\)\s*$/);
+    if (linkedImg) {
+      pushImageBlock(blocks, linkedImg[1]);
+      i++;
+      continue;
+    }
+
     // 独占一行的图片
     const img = line.match(/^!\[[^\]]*\]\(([^)]+)\)\s*$/);
     if (img) {
-      const url = img[1].trim();
-      // Notion 只接受 http(s) 公网直链；data: / 相对路径 / 异常协议一律跳过，
-      // 否则整个请求会因为单张图无效而被 Notion 整体拒绝
-      if (
-        /^https?:\/\//i.test(url) &&
-        url.length <= 2000 &&
-        !/\s/.test(url)
-      ) {
-        blocks.push({
-          object: "block",
-          type: "image",
-          image: { type: "external", external: { url } },
-        });
-      }
+      pushImageBlock(blocks, img[1]);
+      i++;
+      continue;
+    }
+
+    // "空链接独占一行" [](url) —— 上游 <a><img></a> 的 img 被剔走后留下的壳
+    // 如果 url 看起来是个图片 / 已知图床，就当图片块；否则丢弃，避免空 paragraph
+    const naked = line.match(/^\[\s*\]\(([^)]+)\)\s*$/);
+    if (naked) {
+      const candidate = unwrapForNotion(naked[1].trim());
+      const looksLikeImage =
+        /\.(png|jpe?g|gif|webp|svg|avif)(\?|$)/i.test(candidate) ||
+        /substack-post-media\.s3\.amazonaws\.com/i.test(candidate) ||
+        /substackcdn\.com\/image\//i.test(candidate);
+      if (looksLikeImage) pushImageBlock(blocks, candidate);
       i++;
       continue;
     }

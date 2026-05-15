@@ -425,6 +425,50 @@
     return "";
   }
 
+  // 把 <picture><source><img></picture> 拆开，只留下里面那张 <img>。
+  // <picture> 本身在 Markdown / Notion 里没意义，留着只会让 Readability / Turndown
+  // 多挑出几条 source 来扰动；提前拍扁更稳。
+  function unwrapPicture(root) {
+    root.querySelectorAll("picture").forEach((p) => {
+      const img = p.querySelector("img");
+      if (!img) {
+        p.remove();
+        return;
+      }
+      // 把 <source srcset> 提升到 img 上（如果 img 本身没有 srcset）
+      if (!img.getAttribute("srcset")) {
+        const src = p.querySelector("source[srcset]");
+        if (src) img.setAttribute("srcset", src.getAttribute("srcset"));
+      }
+      p.parentNode.insertBefore(img, p);
+      p.remove();
+    });
+  }
+
+  // 把"只裹了一张 <img>(可能再加 <picture>)的 <a>"展平为裸 img。
+  // Substack / 公众号 / 知乎专栏都喜欢 <a href="大图url"><img src="缩略图url"></a>，
+  // Turndown 会把它转成 [![alt](src)](href)，Notion 那边既不是图片块、链接也是包装地址，
+  // 形成"空文本 + 失效链接"的脏数据。这里直接把外层 a 拆掉，让 img 单独存在。
+  function unwrapImageAnchors(root) {
+    root.querySelectorAll("a").forEach((a) => {
+      const childImgs = a.querySelectorAll("img");
+      if (!childImgs.length) return;
+      // 如果 a 里除了空白和图片以外还有真正的文字，说明它是个真链接（带配图）—— 不动
+      const text = (a.textContent || "").replace(/\s/g, "");
+      if (text) return;
+      // 如果 a 自己有 href 而 img 自身 src 是占位/无效，把 href 当作 img 的 src 备份
+      const href = a.getAttribute("href") || "";
+      childImgs.forEach((img) => {
+        const cur = img.getAttribute("src") || "";
+        if (href && (!cur || isPlaceholderSrc(cur))) {
+          img.setAttribute("src", href);
+        }
+        a.parentNode.insertBefore(img, a);
+      });
+      a.remove();
+    });
+  }
+
   function absolutizeUrls(root, base) {
     root.querySelectorAll("a[href]").forEach((a) => {
       const v = a.getAttribute("href");
@@ -520,7 +564,11 @@
   function clipArticle() {
     const docClone = document.cloneNode(true);
 
-    // 先把相对链接转成绝对地址（Readability 之后再补会受 baseURI 影响）
+    // 1) 拍扁 <picture>，让 img 浮到顶层
+    // 2) 拆掉只包了 img 的 <a>，避免 Readability/Turndown 输出 [![](src)](href) 嵌套
+    // 3) 把所有链接/图片绝对化，并解开 Substack 等代理 CDN 的包装
+    unwrapPicture(docClone);
+    unwrapImageAnchors(docClone);
     absolutizeUrls(docClone, location.href);
 
     // 移除插件自身节点；把现有高亮 span 拆掉（统一以存储里的锚点为准重新注入）
