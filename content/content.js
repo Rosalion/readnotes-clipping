@@ -311,6 +311,120 @@
   }
 
   // ---------- 剪藏正文 ----------
+
+  // 懒加载图片真正的源可能藏在这些属性里（按优先级）
+  const LAZY_SRC_ATTRS = [
+    "data-src",
+    "data-original",
+    "data-actualsrc",
+    "data-actual-src",
+    "data-lazy-src",
+    "data-lazy",
+    "data-fallback-src",
+    "data-hi-res-src",
+    "data-image",
+  ];
+  const LAZY_SRCSET_ATTRS = ["data-srcset", "data-lazy-srcset"];
+
+  // 一眼看上去就不该出现在最终文档里的 src（占位、空、内联 SVG 1×1 等）
+  function isPlaceholderSrc(v) {
+    if (!v) return true;
+    const s = String(v).trim();
+    if (!s) return true;
+    if (/^data:/i.test(s)) return true; // 占位用 data URI（含 1×1 SVG）
+    if (/about:blank/i.test(s)) return true;
+    if (
+      /(^|[/?_=-])(blank|spacer|placeholder|loader|loading|grey|gray|1x1|pixel|transparent)\.(gif|png|svg|webp)\b/i.test(
+        s
+      )
+    )
+      return true;
+    return false;
+  }
+
+  // 从 srcset 字符串里挑分辨率最大的那张
+  function pickFromSrcset(ss) {
+    if (!ss) return "";
+    const items = String(ss)
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((s) => {
+        const parts = s.split(/\s+/);
+        const url = parts[0];
+        const m = (parts[1] || "").match(/^(\d+(?:\.\d+)?)([wx])$/);
+        return { url, score: m ? parseFloat(m[1]) : 0 };
+      })
+      .filter((it) => it.url && !isPlaceholderSrc(it.url));
+    if (!items.length) return "";
+    items.sort((a, b) => b.score - a.score);
+    return items[0].url;
+  }
+
+  // 把常见 "图片代理 CDN" 包装解开，还原成原始可被 Notion 抓取的直链。
+  // 例：
+  //   https://substackcdn.com/image/fetch/$s_!xxx!,w_1456,c_limit,f_auto,.../https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2F...png
+  //   → https://substack-post-media.s3.amazonaws.com/...png
+  function unwrapCdnProxy(u) {
+    if (!u) return u;
+    try {
+      const url = new URL(u);
+      const host = url.hostname.toLowerCase();
+      const path = url.pathname;
+
+      // Substack 的图片代理：/image/fetch/<参数段，无斜杠>/<URL-encoded 原图>
+      if (
+        (host === "substackcdn.com" || host.endsWith(".substackcdn.com")) &&
+        path.startsWith("/image/fetch/")
+      ) {
+        const m = path.match(/^\/image\/fetch\/[^/]+\/(.+)$/);
+        if (m) {
+          let inner = m[1];
+          // Substack 一般编码一次；偶有两层编码的页面，递归解一下兜底
+          for (let i = 0; i < 3 && /%[0-9a-fA-F]{2}/.test(inner); i++) {
+            inner = decodeURIComponent(inner);
+            if (/^https?:\/\//i.test(inner)) break;
+          }
+          if (/^https?:\/\//i.test(inner)) return inner + (url.search || "");
+        }
+      }
+
+      // images.weserv.nl / wsrv.nl 透明代理：?url=<encoded>
+      if (
+        host === "images.weserv.nl" ||
+        host === "wsrv.nl" ||
+        host === "imageproxy.pimg.tw"
+      ) {
+        const pass =
+          url.searchParams.get("url") ||
+          url.searchParams.get("src") ||
+          url.searchParams.get("u");
+        if (pass) {
+          const real = /^https?:\/\//i.test(pass) ? pass : "https://" + pass;
+          return real;
+        }
+      }
+    } catch (e) {}
+    return u;
+  }
+
+  // 选出这张 <img> 当下"最像真图"的那个 URL
+  function resolveImgUrl(img) {
+    for (const attr of LAZY_SRC_ATTRS) {
+      const v = img.getAttribute(attr);
+      if (v && !isPlaceholderSrc(v)) return v;
+    }
+    for (const attr of LAZY_SRCSET_ATTRS) {
+      const picked = pickFromSrcset(img.getAttribute(attr));
+      if (picked) return picked;
+    }
+    const picked = pickFromSrcset(img.getAttribute("srcset"));
+    if (picked) return picked;
+    const src = img.getAttribute("src");
+    if (src && !isPlaceholderSrc(src)) return src;
+    return "";
+  }
+
   function absolutizeUrls(root, base) {
     root.querySelectorAll("a[href]").forEach((a) => {
       const v = a.getAttribute("href");
@@ -319,14 +433,30 @@
         a.setAttribute("href", new URL(v, base).href);
       } catch (e) {}
     });
-    root.querySelectorAll("img[src]").forEach((img) => {
-      const v = img.getAttribute("src");
-      if (v) {
-        try {
-          img.setAttribute("src", new URL(v, base).href);
-        } catch (e) {}
+
+    root.querySelectorAll("img").forEach((img) => {
+      const raw = resolveImgUrl(img);
+      if (!raw) {
+        // 纯占位图、没有可用源 → 干脆移除，避免在 Notion 里留下死链
+        img.remove();
+        return;
       }
-      img.removeAttribute("srcset"); // srcset 里多是相对地址，去掉避免歧义
+      let abs;
+      try {
+        abs = new URL(raw, base).href;
+      } catch (e) {
+        img.remove();
+        return;
+      }
+      abs = unwrapCdnProxy(abs);
+      try {
+        abs = new URL(abs, base).href;
+      } catch (e) {}
+      img.setAttribute("src", abs);
+      // 已经选定一个 URL；清掉容易让下游再次猜错的属性
+      img.removeAttribute("srcset");
+      LAZY_SRC_ATTRS.forEach((a) => img.removeAttribute(a));
+      LAZY_SRCSET_ATTRS.forEach((a) => img.removeAttribute(a));
     });
   }
 

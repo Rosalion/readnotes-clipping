@@ -289,12 +289,21 @@ export function markdownToBlocks(md) {
 
     // 独占一行的图片
     const img = line.match(/^!\[[^\]]*\]\(([^)]+)\)\s*$/);
-    if (img && /^https?:\/\//i.test(img[1].trim())) {
-      blocks.push({
-        object: "block",
-        type: "image",
-        image: { type: "external", external: { url: img[1].trim() } },
-      });
+    if (img) {
+      const url = img[1].trim();
+      // Notion 只接受 http(s) 公网直链；data: / 相对路径 / 异常协议一律跳过，
+      // 否则整个请求会因为单张图无效而被 Notion 整体拒绝
+      if (
+        /^https?:\/\//i.test(url) &&
+        url.length <= 2000 &&
+        !/\s/.test(url)
+      ) {
+        blocks.push({
+          object: "block",
+          type: "image",
+          image: { type: "external", external: { url } },
+        });
+      }
       i++;
       continue;
     }
