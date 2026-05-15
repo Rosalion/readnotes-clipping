@@ -1,0 +1,270 @@
+/* content/content.css —— 注入网页的样式：高亮标记 + 选区工具条 + 批注弹层
+   主题：森林绿 / 奶油纸。所有数值用字面量，避免被宿主页面 CSS 影响。 */
+
+/* ---------- 高亮标记（自然颜料色，克制而清晰）---------- */
+.rnc-highlight {
+  border-radius: 2px;
+  cursor: pointer;
+  background-color: rgba(244, 211, 145, 0.82);
+  box-shadow: inset 0 -0.32em 0 rgba(244, 211, 145, 0.28);
+  transition: filter 0.14s ease, box-shadow 0.2s ease;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.rnc-highlight[data-rnc-color="yellow"] {
+  background-color: rgba(244, 211, 145, 0.82);
+  box-shadow: inset 0 -0.32em 0 rgba(231, 188, 106, 0.32);
+}
+.rnc-highlight[data-rnc-color="green"] {
+  background-color: rgba(183, 206, 158, 0.82);
+  box-shadow: inset 0 -0.32em 0 rgba(150, 181, 120, 0.32);
+}
+.rnc-highlight[data-rnc-color="blue"] {
+  background-color: rgba(168, 197, 212, 0.8);
+  box-shadow: inset 0 -0.32em 0 rgba(132, 170, 189, 0.32);
+}
+.rnc-highlight[data-rnc-color="pink"] {
+  background-color: rgba(224, 180, 159, 0.84);
+  box-shadow: inset 0 -0.32em 0 rgba(201, 148, 124, 0.34);
+}
+.rnc-highlight:hover {
+  filter: brightness(0.96) saturate(1.08);
+}
+/* 带批注：叶脉绿的细下划线 */
+.rnc-highlight.rnc-has-note {
+  border-bottom: 1.5px solid rgba(45, 82, 57, 0.7);
+}
+/* 刚创建时的轻微"落定"动画 */
+.rnc-just-made {
+  animation: rnc-settle 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes rnc-settle {
+  0% {
+    background-color: rgba(106, 160, 126, 0.55);
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+/* 侧边栏"定位"时的闪烁 */
+.rnc-flash {
+  animation: rnc-flash 1.5s ease;
+}
+@keyframes rnc-flash {
+  0%,
+  100% {
+    box-shadow: inset 0 -0.32em 0 rgba(244, 211, 145, 0.28),
+      0 0 0 0 rgba(45, 82, 57, 0);
+  }
+  22% {
+    box-shadow: inset 0 -0.32em 0 rgba(244, 211, 145, 0.28),
+      0 0 0 5px rgba(106, 160, 126, 0.55);
+  }
+}
+
+/* ---------- UI 容器：尽量与宿主页面隔离 ---------- */
+.rnc-ui-root,
+.rnc-ui-root * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+  text-shadow: none;
+  color: #2a2d27;
+  vertical-align: baseline;
+  white-space: normal;
+  float: none;
+}
+.rnc-ui-root button {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+/* ---------- 选区工具条 ---------- */
+#rnc-toolbar {
+  position: fixed;
+  z-index: 2147483646;
+  display: none;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #335f44 0%, #233f2c 100%);
+  box-shadow: 0 10px 30px -6px rgba(20, 38, 26, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  user-select: none;
+  animation: rnc-pop-in 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes rnc-pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+#rnc-toolbar .rnc-swatch {
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.32);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.13s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.13s ease;
+}
+#rnc-toolbar .rnc-swatch:hover {
+  transform: scale(1.18) translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+#rnc-toolbar .rnc-swatch:active {
+  transform: scale(1.04);
+}
+#rnc-toolbar .rnc-swatch-yellow { background: #f0cd84; }
+#rnc-toolbar .rnc-swatch-green  { background: #aec898; }
+#rnc-toolbar .rnc-swatch-blue   { background: #9fbecd; }
+#rnc-toolbar .rnc-swatch-pink   { background: #dab09a; }
+#rnc-toolbar .rnc-tb-sep {
+  width: 1px;
+  height: 19px;
+  background: rgba(255, 255, 255, 0.16);
+}
+#rnc-toolbar .rnc-tb-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px 6px 9px;
+  border-radius: 9px;
+  background: #f3f0e4;
+  color: #233f2c;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.14s ease, transform 0.13s ease;
+}
+#rnc-toolbar .rnc-tb-note::before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  flex: none;
+  background: #233f2c;
+  /* 一支羽毛笔 / 叶尖的剪影 */
+  -webkit-mask: no-repeat center / contain
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M20.7 3.3a1 1 0 0 0-1.3-.1C14 7 9.5 11 6.8 15.2c-1 1.6-1.7 3.3-2.1 5.1l-1.4 1.4a1 1 0 1 0 1.4 1.4l1.4-1.4c1.8-.4 3.5-1.1 5.1-2.1C15.9 16.9 19.9 12.4 23.8 6.9a1 1 0 0 0-.1-1.3zM7.3 18.7c.4-1.3.9-2.4 1.6-3.5l2 2c-1.1.7-2.3 1.2-3.6 1.5z'/></svg>");
+  mask: no-repeat center / contain
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M20.7 3.3a1 1 0 0 0-1.3-.1C14 7 9.5 11 6.8 15.2c-1 1.6-1.7 3.3-2.1 5.1l-1.4 1.4a1 1 0 1 0 1.4 1.4l1.4-1.4c1.8-.4 3.5-1.1 5.1-2.1C15.9 16.9 19.9 12.4 23.8 6.9a1 1 0 0 0-.1-1.3zM7.3 18.7c.4-1.3.9-2.4 1.6-3.5l2 2c-1.1.7-2.3 1.2-3.6 1.5z'/></svg>");
+}
+#rnc-toolbar .rnc-tb-note:hover {
+  background: #fffdf6;
+  transform: translateY(-1px);
+}
+#rnc-toolbar .rnc-tb-note:active {
+  transform: translateY(0);
+}
+
+/* ---------- 批注编辑弹层 ---------- */
+#rnc-note-popover {
+  position: fixed;
+  z-index: 2147483647;
+  width: 312px;
+  max-width: calc(100vw - 24px);
+  padding: 14px;
+  border-radius: 16px;
+  background: #fffdf6;
+  box-shadow: 0 20px 56px -10px rgba(20, 38, 26, 0.42),
+    0 0 0 1px rgba(45, 82, 57, 0.1);
+  animation: rnc-pop-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#rnc-note-popover .rnc-np-quote {
+  font-family: Georgia, "Songti SC", "Noto Serif CJK SC", serif;
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.55;
+  color: #4a5247;
+  background: #f3f0e4;
+  border-left: 3px solid #6aa07e;
+  padding: 7px 10px;
+  border-radius: 0 7px 7px 0;
+  margin-bottom: 10px;
+  max-height: 76px;
+  overflow: auto;
+}
+#rnc-note-popover .rnc-np-text {
+  display: block;
+  width: 100%;
+  resize: vertical;
+  min-height: 76px;
+  padding: 9px 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #2a2d27;
+  background: #fffdf6;
+  border: 1.5px solid #ddd8c5;
+  border-radius: 9px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+#rnc-note-popover .rnc-np-text::placeholder {
+  color: #9a9b8e;
+}
+#rnc-note-popover .rnc-np-text:focus {
+  border-color: #6aa07e;
+  box-shadow: 0 0 0 3px rgba(106, 160, 126, 0.16);
+}
+#rnc-note-popover .rnc-np-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 11px;
+}
+#rnc-note-popover .rnc-np-spacer {
+  flex: 1;
+}
+#rnc-note-popover button {
+  padding: 6px 13px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background 0.14s ease, transform 0.12s ease;
+}
+#rnc-note-popover button:active {
+  transform: translateY(1px);
+}
+#rnc-note-popover .rnc-np-del {
+  color: #a8472f;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+#rnc-note-popover .rnc-np-del:hover {
+  background: rgba(168, 71, 47, 0.08);
+}
+#rnc-note-popover .rnc-np-cancel {
+  color: #5a5f53;
+  background: #ece8da;
+}
+#rnc-note-popover .rnc-np-cancel:hover {
+  background: #e3dfce;
+}
+#rnc-note-popover .rnc-np-save {
+  background: #2d5239;
+  color: #f3f0e4;
+  font-weight: 600;
+}
+#rnc-note-popover .rnc-np-save:hover {
+  background: #366043;
+}

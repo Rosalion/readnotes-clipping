@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>阅读剪藏 · 设置</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="sheet">
+      <header class="sheet-head">
+        <svg class="leaf-logo" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2C17 7 17 16 12 22C7 16 7 7 12 2Z" fill="#2d5239" />
+          <path
+            d="M12 2.8V21.4"
+            stroke="#f3f0e4"
+            stroke-width="1.05"
+            stroke-linecap="round"
+          />
+          <path
+            d="M12 8.8 15.7 6.4M12 8.8 8.3 6.4M12 13.4 16 11.2M12 13.4 8 11.2"
+            stroke="#f3f0e4"
+            stroke-width="0.85"
+            stroke-linecap="round"
+          />
+        </svg>
+        <div>
+          <div class="kicker">Field Notes · 设置</div>
+          <h1>阅读剪藏</h1>
+        </div>
+      </header>
+      <p class="lead">
+        配置 Notion 集成与划线默认颜色。Notion 采用 Internal Integration Token
+        方案，Token 与 Database ID 只保存在本机浏览器中。
+      </p>
+
+      <section class="card">
+        <h2><span class="card-num">01</span>Notion 集成</h2>
+
+        <label class="field">
+          <span class="field-label">Integration Token</span>
+          <input
+            type="password"
+            id="token"
+            placeholder="ntn_ 或 secret_ 开头的内部集成令牌"
+            autocomplete="off"
+          />
+          <span class="field-hint">
+            在
+            <a
+              href="https://www.notion.so/my-integrations"
+              target="_blank"
+              rel="noreferrer"
+              >notion.so/my-integrations</a
+            >
+            新建一个 Internal Integration，复制其 Token。
+          </span>
+        </label>
+
+        <label class="field">
+          <span class="field-label">目标 Database ID</span>
+          <input
+            type="text"
+            id="databaseId"
+            placeholder="粘贴 Database 的链接或 32 位 ID 均可"
+            autocomplete="off"
+          />
+          <span class="field-hint">
+            打开目标 Database → 右上角「···」→「Connections / 连接」里把上面的集成添加进去，
+            然后把该 Database 的页面链接粘贴到这里。
+          </span>
+        </label>
+
+        <div class="inline-row">
+          <button id="btnTest" class="btn btn-ghost">测试连接</button>
+          <span id="testResult" class="result"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2><span class="card-num">02</span>划线默认颜色</h2>
+        <div class="color-row" id="colorRow">
+          <label class="color-opt">
+            <input type="radio" name="defaultColor" value="yellow" />
+            <span class="swatch swatch-yellow"></span>
+            <span class="swatch-name">蜜黄</span>
+          </label>
+          <label class="color-opt">
+            <input type="radio" name="defaultColor" value="green" />
+            <span class="swatch swatch-green"></span>
+            <span class="swatch-name">苔绿</span>
+          </label>
+          <label class="color-opt">
+            <input type="radio" name="defaultColor" value="blue" />
+            <span class="swatch swatch-blue"></span>
+            <span class="swatch-name">雾蓝</span>
+          </label>
+          <label class="color-opt">
+            <input type="radio" name="defaultColor" value="pink" />
+            <span class="swatch swatch-pink"></span>
+            <span class="swatch-name">陶红</span>
+          </label>
+        </div>
+        <span class="field-hint"
+          >「划线 + 批注」按钮使用的颜色；选区工具条里也能临时换色。</span
+        >
+      </section>
+
+      <div class="save-bar">
+        <button id="btnSave" class="btn btn-primary">保存设置</button>
+        <span id="saveResult" class="result"></span>
+      </div>
+
+      <section class="card guide">
+        <h2><span class="card-num">03</span>使用说明</h2>
+        <ol>
+          <li>点击浏览器工具栏的扩展图标，即可打开 / 收起侧边栏。</li>
+          <li>
+            在网页中选中文字，会弹出工具条：点颜色直接划线，或「划线 +
+            批注」并写注释。
+          </li>
+          <li>点击页面里已有的划线，可随时修改或删除批注。</li>
+          <li>切换标签页时，侧边栏会自动跟随显示当前页面的划线。</li>
+          <li>
+            「导出 Markdown」按 DOM 智能抓取正文，连同划线（==高亮==）与批注（callout）一并导出，可直接放进
+            Obsidian。
+          </li>
+          <li>「发送到 Notion」把同样的内容作为新页面写入上面指定的 Database。</li>
+          <li>
+            「清除本页」：勾选「清除后刷新页面」会立即抹除；不勾选则页面上的标记保留到你下次手动刷新。
+          </li>
+        </ol>
+      </section>
+
+      <footer class="sheet-foot">阅读剪藏 · 划线批注 — 一片叶子，一页笔记</footer>
+    </main>
+
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

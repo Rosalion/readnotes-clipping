@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# 编辑器 / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node（万一未来引入构建）
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# Claude Code 本地配置（用户 / 机器特定，不入库）
+.claude/settings.local.json
+
+# 临时打包产物
+*.zip
+dist/
+build/

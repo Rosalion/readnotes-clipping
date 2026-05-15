@@ -1,0 +1,639 @@
+/* sidepanel/sidepanel.css —— 主题：森林绿 · 田野笔记 */
+
+@font-face {
+  font-family: "Fraunces";
+  src: url("../assets/fonts/fraunces-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --paper: #f4f1e8;
+  --paper-raised: #fbfaf3;
+  --paper-sunk: #ebe7d8;
+  --forest-900: #1b3122;
+  --forest-800: #233f2c;
+  --forest-700: #2d5239;
+  --forest-600: #3a6b48;
+  --fern: #5b9279;
+  --fern-soft: #6aa07e;
+  --moss: #8a9b6e;
+  --ink: #2a2d27;
+  --ink-soft: #565b4e;
+  --muted: #8b8c7c;
+  --line: #ddd8c5;
+  --line-soft: #e7e3d4;
+  --clay: #a8472f;
+  --gold: #9c7a3c;
+
+  --font-display: "Fraunces", "Songti SC", "STSong", "Noto Serif CJK SC",
+    "Noto Serif SC", Georgia, serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+
+  --shadow-card: 0 1px 2px rgba(27, 49, 34, 0.04),
+    0 6px 16px -8px rgba(27, 49, 34, 0.14);
+  --shadow-lift: 0 2px 4px rgba(27, 49, 34, 0.06),
+    0 14px 28px -10px rgba(27, 49, 34, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--paper);
+  /* 极淡的纸张颗粒 */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/></svg>");
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 报头 ---------- */
+.masthead {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 15px;
+  background: linear-gradient(150deg, #335f44 0%, #233f2c 70%, #1f3a29 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 6px 18px -8px rgba(27, 49, 34, 0.5);
+  border-bottom: 1.5px solid rgba(156, 122, 60, 0.45);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.leaf-logo {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  padding: 4px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 38% 32%,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.02)
+  );
+  transform: rotate(-16deg);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.28));
+}
+.wordmark {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.wordmark-cn {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  color: #f4f1e8;
+}
+.wordmark-en {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 30;
+  font-style: italic;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: #a9c4b1;
+  margin-top: 1px;
+}
+.ghost-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cfe0d4;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.ghost-icon svg {
+  width: 19px;
+  height: 19px;
+}
+.ghost-icon:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  transform: rotate(35deg);
+}
+
+/* ---------- 条目抬头 ---------- */
+.entry-head {
+  flex: none;
+  padding: 15px 16px 13px;
+  background: linear-gradient(180deg, var(--paper-raised), var(--paper));
+  border-bottom: 1px solid var(--line);
+}
+.entry-kicker {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 5px;
+}
+.entry-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 44;
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 1.3;
+  color: var(--forest-900);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.entry-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 7px;
+  font-size: 11.5px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.entry-meta .meta-host {
+  color: var(--ink-soft);
+}
+.entry-meta .meta-dot {
+  color: var(--line);
+}
+.entry-meta .meta-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(91, 146, 121, 0.14);
+  color: var(--forest-600);
+  font-weight: 600;
+  font-size: 11px;
+}
+.entry-meta .meta-count::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fern);
+}
+
+/* ---------- 账本（列表区）---------- */
+.ledger {
+  flex: 1;
+  overflow-y: auto;
+  padding: 13px 14px 16px;
+}
+.ledger::-webkit-scrollbar {
+  width: 9px;
+}
+.ledger::-webkit-scrollbar-thumb {
+  background: rgba(45, 82, 57, 0.22);
+  border-radius: 999px;
+  border: 2px solid var(--paper);
+}
+.ledger::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 82, 57, 0.38);
+}
+
+/* ---------- 划线卡片（账本里的一"叶"）---------- */
+.leaf-card {
+  position: relative;
+  background: var(--paper-raised);
+  border: 1px solid var(--line-soft);
+  border-radius: 13px;
+  padding: 12px 13px 10px 18px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, transform 0.2s ease,
+    border-color 0.2s ease;
+  animation: leaf-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes leaf-in {
+  0% {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.leaf-card:hover {
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-1px);
+  border-color: var(--line);
+}
+/* 书签状的彩色"叶脊" */
+.leaf-card::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--spine, #e7bc6a);
+}
+.leaf-card[data-color="yellow"] { --spine: #e3b563; --wash: rgba(244, 211, 145, 0.34); }
+.leaf-card[data-color="green"]  { --spine: #93b274; --wash: rgba(183, 206, 158, 0.4); }
+.leaf-card[data-color="blue"]   { --spine: #7fa6ba; --wash: rgba(168, 197, 212, 0.36); }
+.leaf-card[data-color="pink"]   { --spine: #c68f76; --wash: rgba(224, 180, 159, 0.38); }
+
+.leaf-quote {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 30;
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: var(--ink);
+  background: var(--wash);
+  border-radius: 3px;
+  padding: 1px 4px;
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: filter 0.15s ease;
+}
+.leaf-quote:hover {
+  filter: brightness(0.97) saturate(1.1);
+}
+
+/* 批注 —— 像写在页边的注脚 */
+.leaf-note {
+  position: relative;
+  margin-top: 9px;
+  padding: 7px 10px 7px 22px;
+  background: var(--paper-sunk);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.62;
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.leaf-note::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 9px;
+  width: 8px;
+  height: 8px;
+  background: var(--fern);
+  /* 小叶子标记 */
+  -webkit-mask: no-repeat center / contain
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M12 2C17 7 17 16 12 22C7 16 7 7 12 2Z'/></svg>");
+  mask: no-repeat center / contain
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M12 2C17 7 17 16 12 22C7 16 7 7 12 2Z'/></svg>");
+}
+.leaf-note-add {
+  margin-top: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px dashed var(--line);
+  border-radius: 7px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease,
+    background 0.15s ease;
+}
+.leaf-note-add:hover {
+  color: var(--forest-600);
+  border-color: var(--fern-soft);
+  background: rgba(91, 146, 121, 0.07);
+}
+
+.leaf-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+}
+.leaf-time {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.leaf-actions {
+  display: flex;
+  gap: 2px;
+}
+.leaf-actions button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 3px 7px;
+  border-radius: 6px;
+  transition: background 0.13s ease, color 0.13s ease;
+}
+.leaf-actions button:hover {
+  background: rgba(45, 82, 57, 0.08);
+  color: var(--forest-700);
+}
+.leaf-actions button.danger:hover {
+  background: rgba(168, 71, 47, 0.1);
+  color: var(--clay);
+}
+
+/* 卡内的批注编辑器 */
+.note-editor {
+  margin-top: 9px;
+}
+.note-editor textarea {
+  width: 100%;
+  min-height: 62px;
+  resize: vertical;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink);
+  padding: 8px 9px;
+  background: var(--paper-raised);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.note-editor textarea:focus {
+  border-color: var(--fern-soft);
+  box-shadow: 0 0 0 3px rgba(91, 146, 121, 0.15);
+}
+.note-editor .editor-actions {
+  display: flex;
+  gap: 7px;
+  margin-top: 7px;
+  justify-content: flex-end;
+}
+.note-editor .editor-actions button {
+  font: inherit;
+  font-size: 11.5px;
+  padding: 5px 13px;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--paper-sunk);
+  color: var(--ink-soft);
+  transition: background 0.13s ease, transform 0.12s ease;
+}
+.note-editor .editor-actions button:active {
+  transform: translateY(1px);
+}
+.note-editor .editor-actions .save {
+  background: var(--forest-700);
+  border-color: var(--forest-700);
+  color: var(--paper);
+  font-weight: 600;
+}
+.note-editor .editor-actions .save:hover {
+  background: var(--forest-600);
+}
+
+/* ---------- 空状态 / 不支持 ---------- */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 46px 24px;
+  animation: leaf-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.placeholder .ph-leaf {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  opacity: 0.85;
+  transform: rotate(-14deg);
+}
+.placeholder .ph-title {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 40;
+  font-size: 16px;
+  color: var(--forest-800);
+  margin-bottom: 6px;
+}
+.placeholder .ph-hint {
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 220px;
+  line-height: 1.65;
+}
+
+/* ---------- 底部操作 ---------- */
+.actions {
+  flex: none;
+  padding: 11px 14px 13px;
+  background: linear-gradient(180deg, var(--paper), var(--paper-raised));
+  border-top: 1px solid var(--line);
+}
+.actions-primary {
+  display: flex;
+  gap: 8px;
+}
+.btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 9px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: background 0.15s ease, transform 0.12s ease,
+    box-shadow 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn .btn-ico {
+  font-size: 13px;
+  line-height: 1;
+}
+.btn-primary {
+  background: var(--forest-700);
+  color: var(--paper);
+  box-shadow: 0 6px 14px -6px rgba(27, 49, 34, 0.5);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--forest-600);
+  box-shadow: 0 8px 18px -6px rgba(27, 49, 34, 0.55);
+}
+.btn-primary.btn-outline {
+  background: var(--paper-raised);
+  color: var(--forest-700);
+  border-color: var(--fern-soft);
+  box-shadow: none;
+}
+.btn-primary.btn-outline:hover:not(:disabled) {
+  background: rgba(91, 146, 121, 0.1);
+  border-color: var(--forest-600);
+}
+.btn.is-busy {
+  position: relative;
+  color: transparent !important;
+}
+.btn.is-busy::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  color: var(--paper);
+  animation: btn-spin 0.7s linear infinite;
+}
+.btn-outline.is-busy::after {
+  color: var(--forest-700);
+}
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.actions-clear {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 9px;
+}
+.btn-quiet {
+  flex: none;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: color 0.14s ease, border-color 0.14s ease,
+    background 0.14s ease;
+}
+.btn-quiet:hover:not(:disabled) {
+  color: var(--clay);
+  border-color: #e0b3a6;
+  background: rgba(168, 71, 47, 0.06);
+}
+.btn-quiet:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.reload-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+.reload-toggle input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border: 1.5px solid var(--line);
+  border-radius: 5px;
+  background: var(--paper-raised);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.reload-toggle input:checked {
+  background: var(--forest-700);
+  border-color: var(--forest-700);
+}
+.reload-toggle input:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--paper);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ---------- 提示条 ---------- */
+.toast {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  padding: 10px 13px;
+  border-radius: 11px;
+  font-size: 12px;
+  line-height: 1.5;
+  box-shadow: 0 14px 34px -8px rgba(27, 49, 34, 0.5);
+  z-index: 60;
+  animation: toast-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes toast-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.toast.info {
+  background: var(--forest-800);
+  color: #e7eee8;
+}
+.toast.success {
+  background: #1f4a33;
+  color: #e7f0e7;
+}
+.toast.error {
+  background: #6e2a1c;
+  color: #f4e3dd;
+}
+.toast a {
+  color: #f0d79a;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(240, 215, 154, 0.4);
+}

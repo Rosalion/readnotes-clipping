@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>阅读剪藏 · 划线批注</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <!-- 报头：像一本田野笔记的封面 -->
+    <header class="masthead">
+      <div class="brand">
+        <svg class="leaf-logo" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 2C17 7 17 16 12 22C7 16 7 7 12 2Z"
+            fill="#f3f0e4"
+          />
+          <path
+            d="M12 2.8V21.4"
+            stroke="#2d5239"
+            stroke-width="1.05"
+            stroke-linecap="round"
+          />
+          <path
+            d="M12 8.8 15.7 6.4M12 8.8 8.3 6.4M12 13.4 16 11.2M12 13.4 8 11.2"
+            stroke="#2d5239"
+            stroke-width="0.85"
+            stroke-linecap="round"
+          />
+        </svg>
+        <span class="wordmark">
+          <span class="wordmark-cn">阅读剪藏</span>
+          <span class="wordmark-en">Field Notes</span>
+        </span>
+      </div>
+      <button id="btnSettings" class="ghost-icon" title="设置" aria-label="设置">
+        <!-- 图标：Lucide「cog」(ISC License, lucide.dev) —— 圆润齿轮，呼应圆形叶徽 -->
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M11 10.27 7 3.34" />
+          <path d="m11 13.73-4 6.93" />
+          <path d="M12 22v-2" />
+          <path d="M12 2v2" />
+          <path d="M14 12h8" />
+          <path d="m17 20.66-1-1.73" />
+          <path d="m17 3.34-1 1.73" />
+          <path d="M2 12h2" />
+          <path d="m20.66 17-1.73-1" />
+          <path d="m20.66 7-1.73 1" />
+          <path d="m3.34 17 1.73-1" />
+          <path d="m3.34 7 1.73 1" />
+          <circle cx="12" cy="12" r="8" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- 条目抬头：当前文章 -->
+    <section class="entry-head">
+      <div class="entry-kicker" id="entryKicker">尚未打开文章</div>
+      <h1 class="entry-title" id="entryTitle">—</h1>
+      <div class="entry-meta" id="entryMeta"></div>
+    </section>
+
+    <!-- 账本：划线与批注列表 -->
+    <main class="ledger" id="ledger"></main>
+
+    <!-- 操作 -->
+    <footer class="actions">
+      <div class="actions-primary">
+        <button id="btnExport" class="btn btn-primary">
+          <span class="btn-ico" aria-hidden="true">⤓</span>
+          <span class="btn-label">导出 Markdown</span>
+        </button>
+        <button id="btnNotion" class="btn btn-primary btn-outline">
+          <span class="btn-ico" aria-hidden="true">↗</span>
+          <span class="btn-label">发送到 Notion</span>
+        </button>
+      </div>
+      <div class="actions-clear">
+        <button id="btnClear" class="btn btn-quiet">清除本页</button>
+        <label class="reload-toggle">
+          <input type="checkbox" id="chkReload" />
+          <span>清除后刷新页面</span>
+        </label>
+      </div>
+    </footer>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <script src="../lib/turndown.js"></script>
+    <script type="module" src="sidepanel.js"></script>
+  </body>
+</html>
