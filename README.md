@@ -50,16 +50,9 @@
 
 ## 🖼 界面预览
 
-<!--
-  在这里替换为你的截图。建议放进 docs/screenshots/ 目录后再引用：
-  ![侧边栏](docs/screenshots/sidepanel.png)
-  ![网页内划线工具条](docs/screenshots/in-page-toolbar.png)
-  ![设置页](docs/screenshots/options.png)
--->
-
-> 截图待补。设计基调是「**森林绿 · 田野笔记**」：奶油纸底、森林绿、暖暖的木纹与黏土色，
-> 标题用 Fraunces 衬线（中文回退到宋体类），划线卡片像账本里的一"叶"。
-> 注入到网页里的高亮 / 工具条用克制的自然颜料色，不抢走你阅读的注意力。
+<p align="center">
+  <img src="docs/screenshots/hero.png" alt="阅读剪藏 · 设置页" width="420" />
+</p>
 
 ---
 
