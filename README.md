@@ -54,6 +54,10 @@
   <img src="docs/screenshots/hero.png" alt="阅读剪藏 · 设置页" width="420" />
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/in-action.png" alt="网页内划线 + 侧边栏" width="900" />
+</p>
+
 ---
 
 ## 🚀 安装
