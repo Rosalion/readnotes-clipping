@@ -7,7 +7,7 @@
 <p align="center">
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-2d5239?style=flat-square" />
   <img alt="Chrome 114+" src="https://img.shields.io/badge/Chrome-114%2B-3a6b48?style=flat-square" />
-  <img alt="Version" src="https://img.shields.io/badge/version-0.1.0-9c7a3c?style=flat-square" />
+  <img alt="Version" src="https://img.shields.io/badge/version-0.1.1-9c7a3c?style=flat-square" />
   <img alt="No build step" src="https://img.shields.io/badge/build-vanilla%20JS-a8472f?style=flat-square" />
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-5b9279?style=flat-square" />
 </p>
