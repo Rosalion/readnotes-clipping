@@ -127,7 +127,7 @@ export function buildMarkdown(clip) {
     "site: " + yaml(clip.siteName || ""),
     "clipped: " + date,
     "highlights: " + (clip.highlights || []).length,
-    "tags: [clipping, 阅读剪藏]",
+    "tags: [clipping, 阅读剪藏, 网页剪藏]",
     "---",
   ]
     .filter((x) => x !== null)
