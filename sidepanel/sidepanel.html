@@ -74,6 +74,27 @@
 
     <!-- 操作 -->
     <footer class="actions">
+      <div class="export-path-row">
+        <label class="export-path-label" for="exportFilePath">导出路径</label>
+        <div class="export-path-controls">
+          <input
+            type="text"
+            id="exportFilePath"
+            class="export-path-input"
+            placeholder="/Users/你/.../文章.md"
+            spellcheck="false"
+            autocomplete="off"
+          />
+          <button
+            type="button"
+            id="btnSuggestPath"
+            class="btn btn-quiet btn-suggest"
+            title="按标题生成路径"
+          >
+            按标题生成
+          </button>
+        </div>
+      </div>
       <div class="actions-primary">
         <button id="btnExport" class="btn btn-primary">
           <span class="btn-ico" aria-hidden="true">⤓</span>

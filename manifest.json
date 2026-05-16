@@ -1,13 +1,17 @@
 {
   "manifest_version": 3,
   "name": "阅读剪藏 · 划线批注",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "一边读文章一边划线、写批注。按 DOM 智能抓取正文，连同批注一起以 Markdown 导出或发送到 Notion。",
   "author": "Roxane <Alondite04@gmail.com>",
   "homepage_url": "https://github.com/Rosalion/readnotes-clipping",
   "minimum_chrome_version": "114",
   "permissions": ["storage", "sidePanel", "tabs"],
-  "host_permissions": ["https://api.notion.com/*"],
+  "host_permissions": [
+    "https://api.notion.com/*",
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
   "background": {
     "service_worker": "background/service-worker.js"
   },

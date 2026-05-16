@@ -2,6 +2,7 @@
 import { testNotion } from "../sidepanel/notion.js";
 
 const SETTINGS_KEY = "rnc:settings";
+const DEFAULT_SAVE_SERVER = "http://127.0.0.1:37564";
 const $ = (id) => document.getElementById(id);
 
 async function load() {
@@ -9,6 +10,9 @@ async function load() {
   const s = data[SETTINGS_KEY] || {};
   $("token").value = s.token || "";
   $("databaseId").value = s.databaseId || "";
+  $("saveServerUrl").value = s.saveServerUrl || DEFAULT_SAVE_SERVER;
+  $("defaultExportFilePath").value = s.defaultExportFilePath || "";
+  $("autoSaveToVault").checked = s.autoSaveToVault !== false;
   const color = s.defaultColor || "yellow";
   const radio = document.querySelector(
     'input[name="defaultColor"][value="' + color + '"]'
@@ -21,6 +25,9 @@ function currentSettings() {
   return {
     token: $("token").value.trim(),
     databaseId: $("databaseId").value.trim(),
+    saveServerUrl: $("saveServerUrl").value.trim() || DEFAULT_SAVE_SERVER,
+    defaultExportFilePath: $("defaultExportFilePath").value.trim(),
+    autoSaveToVault: $("autoSaveToVault").checked,
     defaultColor: checked ? checked.value : "yellow",
   };
 }
@@ -68,6 +75,34 @@ async function test() {
   }
 }
 
+async function testVault() {
+  const r = $("vaultTestResult");
+  const settings = currentSettings();
+  r.textContent = "测试中…";
+  r.className = "test-result";
+  try {
+    const base = settings.saveServerUrl.replace(/\/+$/, "");
+    const resp = await fetch(base + "/health");
+    const data = await resp.json();
+    if (!resp.ok || !data.ok) throw new Error("服务未就绪");
+    const roots = Array.isArray(data.allowedRoots)
+      ? data.allowedRoots.join("；")
+      : "（未知）";
+    r.textContent =
+      "✓ 已连接。vault：" +
+      (data.vaultDir || "—") +
+      "；允许根目录：" +
+      roots;
+    r.className = "test-result ok";
+  } catch (e) {
+    r.textContent =
+      "✗ 无法连接。请先运行 scripts/start-save-server.sh — " +
+      (e.message || e);
+    r.className = "test-result err";
+  }
+}
+
 $("btnSave").addEventListener("click", save);
 $("btnTest").addEventListener("click", test);
+$("btnTestVault").addEventListener("click", testVault);
 load();

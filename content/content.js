@@ -93,11 +93,15 @@
     state.record.url = normalizeUrl(location.href);
     state.record.updatedAt = Date.now();
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
+    saveTimer = setTimeout(async () => {
       if (!isExtensionAlive()) { cleanupOnInvalidated(); return; }
       try {
-        // 注意：chrome.storage.local.set 在 context 已失效时是「同步抛」，
-        // .catch 只能接 Promise reject，接不住同步异常 → 必须用 try/catch 兜底。
+        // 保留侧边栏写入的 exportFilePath（避免旧内存覆盖）
+        const data = await chrome.storage.local.get(state.pageKey);
+        const existing = data[state.pageKey];
+        if (existing && existing.exportFilePath) {
+          state.record.exportFilePath = existing.exportFilePath;
+        }
         const p = chrome.storage.local.set({ [state.pageKey]: state.record });
         if (p && typeof p.catch === "function") p.catch(() => {});
       } catch (e) {

@@ -1,0 +1,8 @@
+{
+  "port": 37564,
+  "vaultDir": "/path/to/your/vault/Clippings",
+  "allowedRoots": [
+    "/path/to/your/vault",
+    "/path/to/other/writable/dir"
+  ]
+}

@@ -18,6 +18,8 @@ const ctx = {
 };
 let editingId = null; // 正在面板里编辑批注的划线 id（避免被自动刷新打断）
 let toastTimer = null;
+let vaultHealthCache = { at: 0, data: null };
+const VAULT_HEALTH_TTL_MS = 5 * 60 * 1000;
 
 const $ = (id) => document.getElementById(id);
 
@@ -49,6 +51,136 @@ function safeFilename(name) {
       .trim()
       .slice(0, 80) || "未命名文章"
   );
+}
+function datedExportFilename(title) {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const date =
+    d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  return date + "_" + safeFilename(title) + ".md";
+}
+function joinPath(dir, name) {
+  return String(dir || "").replace(/\/+$/, "") + "/" + name;
+}
+function basenameFromPath(filePath) {
+  const p = String(filePath || "");
+  const i = p.lastIndexOf("/");
+  return i >= 0 ? p.slice(i + 1) : p;
+}
+function validateExportFilePath(filePath) {
+  const p = String(filePath || "").trim();
+  if (!p) return { ok: false, error: "请填写导出路径" };
+  if (!p.startsWith("/")) {
+    return { ok: false, error: "请使用绝对路径（以 / 开头）" };
+  }
+  if (!p.toLowerCase().endsWith(".md")) {
+    return { ok: false, error: "路径须以 .md 结尾" };
+  }
+  return { ok: true, path: p };
+}
+function downloadMarkdown(md, filename) {
+  const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+async function saveToVaultServer(md, filePath, settings) {
+  const base = (settings.saveServerUrl || "http://127.0.0.1:37564").replace(
+    /\/+$/,
+    ""
+  );
+  const resp = await fetch(base + "/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ filePath, content: md }),
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok || !data.ok) {
+    throw new Error(data.error || "保存服务返回 " + resp.status);
+  }
+  return data;
+}
+async function pingSaveServer(settings) {
+  const base = (settings.saveServerUrl || "http://127.0.0.1:37564").replace(
+    /\/+$/,
+    ""
+  );
+  const resp = await fetch(base + "/health", { method: "GET" });
+  if (!resp.ok) throw new Error("health " + resp.status);
+  return resp.json();
+}
+async function getVaultHealth(settings) {
+  if (
+    vaultHealthCache.data &&
+    Date.now() - vaultHealthCache.at < VAULT_HEALTH_TTL_MS
+  ) {
+    return vaultHealthCache.data;
+  }
+  const data = await pingSaveServer(settings);
+  vaultHealthCache = { at: Date.now(), data };
+  return data;
+}
+async function resolveExportFilePathForDisplay() {
+  const record = ctx.record;
+  if (record && record.exportFilePath) return record.exportFilePath;
+  const settings = await getSettings();
+  if (settings.defaultExportFilePath) return settings.defaultExportFilePath;
+  const title = (record && record.title) || ctx.tabTitle || "未命名文章";
+  try {
+    const health = await getVaultHealth(settings);
+    if (health && health.vaultDir) {
+      return joinPath(health.vaultDir, datedExportFilename(title));
+    }
+  } catch {
+    /* 服务未启动时留空 */
+  }
+  return "";
+}
+async function persistExportFilePath(filePath) {
+  if (!ctx.key) return;
+  const prev = ctx.record || {
+    url: normalizeUrl(ctx.url),
+    title: ctx.tabTitle || "",
+    highlights: [],
+  };
+  const next = { ...prev, exportFilePath: filePath };
+  ctx.record = next;
+  await chrome.storage.local.set({ [ctx.key]: next });
+}
+async function syncExportPathInput() {
+  const input = $("exportFilePath");
+  const btn = $("btnSuggestPath");
+  if (!ctx.supported) {
+    input.value = "";
+    input.disabled = true;
+    btn.disabled = true;
+    return;
+  }
+  input.disabled = false;
+  btn.disabled = false;
+  input.value = await resolveExportFilePathForDisplay();
+}
+async function suggestExportPathFromTitle() {
+  const title = (ctx.record && ctx.record.title) || ctx.tabTitle || "未命名文章";
+  const settings = await getSettings();
+  try {
+    const health = await getVaultHealth(settings);
+    if (health && health.vaultDir) {
+      const p = joinPath(health.vaultDir, datedExportFilename(title));
+      $("exportFilePath").value = p;
+      await persistExportFilePath(p);
+      return;
+    }
+  } catch (e) {
+    toast("无法连接保存服务：" + (e.message || e), "error");
+    return;
+  }
+  toast("未获取到 vault 目录", "error");
 }
 function relativeTime(ts) {
   if (!ts) return "";
@@ -171,6 +303,7 @@ async function refresh() {
     ctx.key = null;
     ctx.record = null;
     ctx.supported = false;
+    await syncExportPathInput();
     render();
     return;
   }
@@ -185,6 +318,7 @@ async function refresh() {
     title: tab.title || "",
     highlights: [],
   };
+  await syncExportPathInput();
   render();
 }
 
@@ -193,6 +327,8 @@ function setFooterEnabled(enabled) {
   $("btnExport").disabled = !enabled;
   $("btnNotion").disabled = !enabled;
   $("btnClear").disabled = !enabled;
+  if ($("exportFilePath")) $("exportFilePath").disabled = !enabled;
+  if ($("btnSuggestPath")) $("btnSuggestPath").disabled = !enabled;
 }
 
 function makePlaceholder(title, hint) {
@@ -447,21 +583,42 @@ async function doExport() {
   const clip = await requestClip();
   if (!clip) return;
   try {
+    const settings = await getSettings();
     const md = buildMarkdown(clip);
-    const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = safeFilename(clip.title) + ".md";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    const filePathInput = ($("exportFilePath").value || "").trim();
     const n = (clip.highlights || []).length;
-    toast(
-      "已导出 Markdown" + (n ? "（含 " + n + " 处划线）" : ""),
-      "success"
-    );
+    const suffix = n ? "（含 " + n + " 处划线）" : "";
+
+    if (settings.autoSaveToVault !== false) {
+      const v = validateExportFilePath(filePathInput);
+      if (!v.ok) {
+        toast(v.error, "error");
+        return;
+      }
+      await persistExportFilePath(v.path);
+      try {
+        const saved = await saveToVaultServer(md, v.path, settings);
+        toast(
+          "已写入：" + (saved.path || v.path) + suffix,
+          "success",
+          4500
+        );
+        return;
+      } catch (e) {
+        console.warn("[阅读剪藏] vault save failed:", e);
+        toast(
+          "保存失败：" + (e.message || e) + "，改为下载…",
+          "info",
+          3000
+        );
+      }
+    }
+
+    const dlName = filePathInput
+      ? basenameFromPath(filePathInput)
+      : datedExportFilename(clip.title);
+    downloadMarkdown(md, dlName);
+    toast("已下载 Markdown：" + dlName + suffix, "success");
   } catch (e) {
     toast("导出失败：" + (e.message || e), "error");
   }
@@ -527,6 +684,15 @@ function bindEvents() {
     withBusy(e.currentTarget, doNotion)
   );
   $("btnClear").addEventListener("click", doClear);
+  $("btnSuggestPath").addEventListener("click", () =>
+    withBusy($("btnSuggestPath"), suggestExportPathFromTitle)
+  );
+  $("exportFilePath").addEventListener("blur", async () => {
+    if (!ctx.key || !ctx.supported) return;
+    const p = ($("exportFilePath").value || "").trim();
+    if (p === ((ctx.record && ctx.record.exportFilePath) || "")) return;
+    await persistExportFilePath(p);
+  });
 
   let refreshTimer = null;
   const scheduleRefresh = () => {

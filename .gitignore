@@ -19,3 +19,8 @@ yarn-debug.log*
 *.zip
 dist/
 build/
+
+# 本地保存服务运行时
+scripts/.save-server.pid
+scripts/.save-server.log
+scripts/save-server.config.json

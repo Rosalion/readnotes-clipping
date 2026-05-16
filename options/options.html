@@ -78,7 +78,51 @@
       </section>
 
       <section class="card">
-        <h2><span class="card-num">02</span>划线默认颜色</h2>
+        <h2><span class="card-num">02</span>Obsidian 落盘</h2>
+
+        <label class="field field-check">
+          <input type="checkbox" id="autoSaveToVault" checked />
+          <span>导出时自动写入 Obsidian 目录（需先启动本地保存服务）</span>
+        </label>
+
+        <label class="field">
+          <span class="field-label">默认导出文件路径</span>
+          <input
+            type="text"
+            id="defaultExportFilePath"
+            placeholder="/Users/你/Documents/yilin_notes/05_情报/网页剪藏/文章.md"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <span class="field-hint">
+            完整绝对路径（须以 <code>.md</code> 结尾）。新页面在侧边栏首次打开时用作初始值；可在侧边栏按页覆盖。
+          </span>
+        </label>
+
+        <label class="field">
+          <span class="field-label">保存服务地址</span>
+          <input
+            type="text"
+            id="saveServerUrl"
+            placeholder="http://127.0.0.1:37564"
+            autocomplete="off"
+          />
+          <span class="field-hint">
+            在项目目录执行
+            <code>./scripts/start-save-server.sh</code>。路径须在
+            <code>scripts/save-server.config.json</code> 的
+            <code>allowedRoots</code> 内。
+          </span>
+        </label>
+
+        <div class="inline-row">
+          <button id="btnTestVault" class="btn btn-ghost">测试保存服务</button>
+          <span id="vaultTestResult" class="result"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2><span class="card-num">03</span>划线默认颜色</h2>
         <div class="color-row" id="colorRow">
           <label class="color-opt">
             <input type="radio" name="defaultColor" value="yellow" />
@@ -112,7 +156,7 @@
       </div>
 
       <section class="card guide">
-        <h2><span class="card-num">03</span>使用说明</h2>
+        <h2><span class="card-num">04</span>使用说明</h2>
         <ol>
           <li>点击浏览器工具栏的扩展图标，即可打开 / 收起侧边栏。</li>
           <li>
@@ -122,8 +166,8 @@
           <li>点击页面里已有的划线，可随时修改或删除批注。</li>
           <li>切换标签页时，侧边栏会自动跟随显示当前页面的划线。</li>
           <li>
-            「导出 Markdown」按 DOM 智能抓取正文，连同划线（==高亮==）与批注（callout）一并导出，可直接放进
-            Obsidian。
+            「导出 Markdown」按 DOM 智能抓取正文，连同划线（==高亮==）与批注（callout）一并导出；在侧边栏填写绝对路径后写入本机
+            Obsidian（须启动 save-server）。
           </li>
           <li>「发送到 Notion」把同样的内容作为新页面写入上面指定的 Database。</li>
           <li>
@@ -140,7 +184,7 @@
       </section>
 
       <section class="card about">
-        <h2><span class="card-num">04</span>关于</h2>
+        <h2><span class="card-num">05</span>关于</h2>
         <dl class="about-list">
           <div class="about-row">
             <dt>设计与开发</dt>

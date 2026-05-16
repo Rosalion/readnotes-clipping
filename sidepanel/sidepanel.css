@@ -454,6 +454,49 @@ body {
   background: linear-gradient(180deg, var(--paper), var(--paper-raised));
   border-top: 1px solid var(--line);
 }
+.export-path-row {
+  margin-bottom: 10px;
+}
+.export-path-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.export-path-controls {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.export-path-input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.35;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-raised);
+  color: var(--ink);
+}
+.export-path-input:focus {
+  outline: none;
+  border-color: var(--fern-soft);
+  box-shadow: 0 0 0 2px rgba(91, 146, 121, 0.18);
+}
+.export-path-input:disabled {
+  opacity: 0.55;
+}
+.btn-suggest {
+  flex: none;
+  white-space: nowrap;
+  padding: 7px 10px;
+  font-size: 10.5px;
+}
 .actions-primary {
   display: flex;
   gap: 8px;
