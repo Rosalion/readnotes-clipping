@@ -207,8 +207,20 @@ function isUsableImageUrl(url) {
   return !!(url && /^https?:\/\//i.test(url) && url.length <= 2000 && !/\s/.test(url));
 }
 
+// Markdown 图片语法允许 `![alt](url "title")` 或 `![alt](url 'title')` —— 把
+// 尾部的 title 段（连同它前面的空白）剥掉，只保留真正的 URL。
+// 之前没剥就直接拿给 Notion，URL 里夹着空格和引号 → 被 isUsableImageUrl 全数毙掉
+// → 整篇文章的图片在 Notion 里一张都不出现。
+function stripMarkdownTitle(url) {
+  if (!url) return url;
+  return String(url)
+    .trim()
+    .replace(/\s+["'][^"']*["']\s*$/, "")
+    .trim();
+}
+
 function pushImageBlock(blocks, url) {
-  const cleaned = unwrapForNotion((url || "").trim());
+  const cleaned = unwrapForNotion(stripMarkdownTitle(url || ""));
   if (isUsableImageUrl(cleaned)) {
     blocks.push({
       object: "block",
