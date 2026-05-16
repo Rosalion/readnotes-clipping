@@ -57,14 +57,52 @@
   }
 
   let saveTimer = null;
+  let pollTimer = null;
+  let cleanedUp = false;
+
+  // 探测扩展运行时是否还活着。当扩展被 reload / 更新 / 卸载后，旧的 content script
+  // 还会留在已打开的页面里运行；这时 chrome.runtime.id 变 undefined（或访问抛错），
+  // 任何 chrome.* 调用都会同步抛 "Extension context invalidated"。
+  function isExtensionAlive() {
+    try {
+      return !!(chrome && chrome.runtime && chrome.runtime.id);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 一旦判定 context 已死，把所有还在跑的定时器、还挂着的 UI 节点统一拆掉，
+  // 让这份"老脚本"安静地退场，不再持续吐 Uncaught。
+  function cleanupOnInvalidated() {
+    if (cleanedUp) return;
+    cleanedUp = true;
+    try { clearTimeout(saveTimer); } catch (e) {}
+    try { clearInterval(pollTimer); } catch (e) {}
+    saveTimer = null;
+    pollTimer = null;
+    try { if (toolbar) toolbar.remove(); } catch (e) {}
+    try { if (notePopover) notePopover.remove(); } catch (e) {}
+    toolbar = null;
+    notePopover = null;
+  }
+
   function saveRecord() {
     if (!state.record) return;
+    if (!isExtensionAlive()) { cleanupOnInvalidated(); return; }
     state.record.title = document.title;
     state.record.url = normalizeUrl(location.href);
     state.record.updatedAt = Date.now();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      chrome.storage.local.set({ [state.pageKey]: state.record }).catch(() => {});
+      if (!isExtensionAlive()) { cleanupOnInvalidated(); return; }
+      try {
+        // 注意：chrome.storage.local.set 在 context 已失效时是「同步抛」，
+        // .catch 只能接 Promise reject，接不住同步异常 → 必须用 try/catch 兜底。
+        const p = chrome.storage.local.set({ [state.pageKey]: state.record });
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      } catch (e) {
+        cleanupOnInvalidated();
+      }
     }, 120);
   }
 
@@ -157,6 +195,7 @@
   }
 
   function showToolbar(range) {
+    if (!toolbar) return; // cleanup 后 toolbar 已被 remove
     const rect = range.getBoundingClientRect();
     if (!rect || (!rect.width && !rect.height)) return;
     toolbar.style.display = "flex";
@@ -797,10 +836,12 @@
     // SPA / 单页应用的地址变化
     window.addEventListener("popstate", checkUrlChange);
     window.addEventListener("hashchange", checkUrlChange);
-    setInterval(checkUrlChange, 1200);
+    pollTimer = setInterval(checkUrlChange, 1200);
   }
 
   async function checkUrlChange() {
+    // 扩展被 reload / 卸载后，这条定时器仍会跑；先探测 context，死了就自卸载
+    if (!isExtensionAlive()) { cleanupOnInvalidated(); return; }
     if (location.href === lastHref) return;
     lastHref = location.href;
     const newKey = pageKeyFor(location.href);
