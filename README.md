@@ -29,6 +29,7 @@
 - [⚠️ 已知限制](#️-已知限制)
 - [🛠 开发](#-开发)
 - [🙏 致谢](#-致谢)
+- [👤 作者](#-作者)
 - [📄 许可](#-许可)
 
 ---
@@ -206,7 +207,16 @@ node scripts/make-icons.mjs
 
 ---
 
+## 👤 作者
+
+**Roxane** · 设计与开发
+📮 [Alondite04@gmail.com](mailto:Alondite04@gmail.com)
+
+有问题、建议、想法都欢迎来信，或者直接在 GitHub 上提 Issue / PR。
+
+---
+
 ## 📄 许可
 
-本项目代码以 **[MIT](LICENSE)** 协议开源。
+本项目代码以 **[MIT](LICENSE)** 协议开源，著作权 © 2026 Roxane。
 vendored 的第三方库各自保留原协议（见 [致谢](#-致谢)）。

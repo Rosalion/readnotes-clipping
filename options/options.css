@@ -320,3 +320,45 @@ a:hover {
   font-size: 12px;
   color: var(--muted);
 }
+.sheet-foot-by {
+  margin-top: 4px;
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+/* ---------- 关于 ---------- */
+.about-list {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.about-row {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  align-items: baseline;
+  gap: 14px;
+}
+.about-row dt {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.about-row dd {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink);
+}
+.about-row dd strong {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 36;
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--forest-800);
+  letter-spacing: 0.01em;
+}
