@@ -342,20 +342,24 @@
     return false;
   }
 
-  // 从 srcset 字符串里挑分辨率最大的那张
+  // 从 srcset 字符串里挑分辨率最大的那张。
+  // 难点：srcset 条目之间用逗号分隔，但 URL 自己也可能含逗号
+  // （典型的就是 Substack 的 fetch 参数段 $s_!xxx!,w_1456,c_limit,...），
+  // 用单纯的 .split(",") 会把 URL 拦腰切断 → 拼出错误的相对路径。
+  // 这里把分隔符限定为"逗号 + 空白 + 紧跟一个 URL 开头"才算条目边界。
   function pickFromSrcset(ss) {
     if (!ss) return "";
     const items = String(ss)
-      .split(",")
+      .split(/,\s+(?=https?:\/\/|\/\/|\/|data:)/i)
       .map((s) => s.trim())
       .filter(Boolean)
       .map((s) => {
-        const parts = s.split(/\s+/);
-        const url = parts[0];
-        const m = (parts[1] || "").match(/^(\d+(?:\.\d+)?)([wx])$/);
-        return { url, score: m ? parseFloat(m[1]) : 0 };
+        // 条目格式 "<url><空白><数字><w|x>"；descriptor 可缺省
+        const m = s.match(/^(\S+)(?:\s+(\d+(?:\.\d+)?)([wx]))?$/);
+        if (!m) return null;
+        return { url: m[1], score: m[2] ? parseFloat(m[2]) : 0 };
       })
-      .filter((it) => it.url && !isPlaceholderSrc(it.url));
+      .filter((it) => it && it.url && !isPlaceholderSrc(it.url));
     if (!items.length) return "";
     items.sort((a, b) => b.score - a.score);
     return items[0].url;
@@ -408,20 +412,26 @@
     return u;
   }
 
-  // 选出这张 <img> 当下"最像真图"的那个 URL
+  // 选出这张 <img> 当下"最像真图"的那个 URL。
+  // 优先级：
+  //   1. data-src / data-original 等 ——「这才是真图」的强信号（懒加载）
+  //   2. src ——若已经是完整 URL，直接用（避开 srcset 解析歧义）
+  //   3. srcset / data-srcset —— 只在前两者都无效时兜底
+  // 之前把 srcset 排在 src 前面，导致 Substack 这种 src 干净、srcset 内含逗号
+  // 的页面被 srcset 解析错误污染。
   function resolveImgUrl(img) {
     for (const attr of LAZY_SRC_ATTRS) {
       const v = img.getAttribute(attr);
       if (v && !isPlaceholderSrc(v)) return v;
     }
+    const src = img.getAttribute("src");
+    if (src && !isPlaceholderSrc(src)) return src;
     for (const attr of LAZY_SRCSET_ATTRS) {
       const picked = pickFromSrcset(img.getAttribute(attr));
       if (picked) return picked;
     }
     const picked = pickFromSrcset(img.getAttribute("srcset"));
     if (picked) return picked;
-    const src = img.getAttribute("src");
-    if (src && !isPlaceholderSrc(src)) return src;
     return "";
   }
 
@@ -455,17 +465,16 @@
   // 把 <picture><source><img></picture> 拆开，只留下里面那张 <img>。
   // <picture> 本身在 Markdown / Notion 里没意义，留着只会让 Readability / Turndown
   // 多挑出几条 source 来扰动；提前拍扁更稳。
+  //
+  // 注意：不再把 <source srcset> 提升到 img 上 —— 那段 srcset 经常含逗号 URL
+  // （Substack 等），即使解析对了，也只是替代 img 已有的良好 src，没收益。
+  // 直接保留 img 自己的 src / srcset，让下游决定即可。
   function unwrapPicture(root) {
     root.querySelectorAll("picture").forEach((p) => {
       const img = p.querySelector("img");
       if (!img) {
         p.remove();
         return;
-      }
-      // 把 <source srcset> 提升到 img 上（如果 img 本身没有 srcset）
-      if (!img.getAttribute("srcset")) {
-        const src = p.querySelector("source[srcset]");
-        if (src) img.setAttribute("srcset", src.getAttribute("srcset"));
       }
       p.parentNode.insertBefore(img, p);
       p.remove();
