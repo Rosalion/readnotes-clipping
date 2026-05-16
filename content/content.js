@@ -425,6 +425,33 @@
     return "";
   }
 
+  // 让 heading 顺利穿过 Readability。
+  //
+  // Readability 的 unlikelyCandidates 正则会把 class 名里含 "header" / "banner" /
+  // "footer" / "sidebar" 的元素直接当非正文删掉 —— 本来是用来杀页眉、侧栏的，
+  // 但 Substack 的章节标题 class 就叫 "header-anchor-post"（"header" 命中），
+  // 整个 <h2> 节点连同文字会被剥掉，Notion 里章节标题彻底消失。
+  // 同类问题在很多平台的"复制锚点链接"按钮 class 上都可能撞到，所以这里
+  // 对所有 heading 一律：① 清掉 class（heading 本身就是 semantic 标签，
+  // 不需要靠 class 识别），② 移除嵌进 heading 的装饰性 div/按钮/svg。
+  function sanitizeHeadings(root) {
+    root.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
+      // ① 清除 class / id，避开 Readability unlikelyCandidates 启发式的误伤
+      h.removeAttribute("class");
+      h.removeAttribute("id");
+      // ② div/section/nav/aside/figure/button/form 都不该出现在 heading 里
+      h.querySelectorAll("div, section, nav, aside, figure, button, form, label").forEach((n) =>
+        n.remove()
+      );
+      // svg 装饰图标也清掉（heading 文字旁的链式锚标）
+      h.querySelectorAll("svg").forEach((n) => n.remove());
+      // 仅含空白的 anchor / span 一并去掉，避免 Turndown 产出空 []()
+      h.querySelectorAll("a, span").forEach((n) => {
+        if (!n.textContent || !n.textContent.trim()) n.remove();
+      });
+    });
+  }
+
   // 把 <picture><source><img></picture> 拆开，只留下里面那张 <img>。
   // <picture> 本身在 Markdown / Notion 里没意义，留着只会让 Readability / Turndown
   // 多挑出几条 source 来扰动；提前拍扁更稳。
@@ -564,9 +591,11 @@
   function clipArticle() {
     const docClone = document.cloneNode(true);
 
-    // 1) 拍扁 <picture>，让 img 浮到顶层
-    // 2) 拆掉只包了 img 的 <a>，避免 Readability/Turndown 输出 [![](src)](href) 嵌套
-    // 3) 把所有链接/图片绝对化，并解开 Substack 等代理 CDN 的包装
+    // 1) 清理 heading 内嵌套的装饰 div / 按钮 / SVG，避免 Readability 把它们当杂质连同标题一起删掉
+    // 2) 拍扁 <picture>，让 img 浮到顶层
+    // 3) 拆掉只包了 img 的 <a>，避免 Readability/Turndown 输出 [![](src)](href) 嵌套
+    // 4) 把所有链接/图片绝对化，并解开 Substack 等代理 CDN 的包装
+    sanitizeHeadings(docClone);
     unwrapPicture(docClone);
     unwrapImageAnchors(docClone);
     absolutizeUrls(docClone, location.href);
